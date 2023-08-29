@@ -1,4 +1,4 @@
-import { IsString, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsEmail, MinLength, IsOptional } from 'class-validator';
 
 export class CreateAdminDto {
     
@@ -11,4 +11,11 @@ export class CreateAdminDto {
     @IsString()
     password: string;
 
+    @IsOptional()
+    @IsString()
+    secret: string;
+
+    @IsOptional()
+    @IsString()
+    token: string
 }

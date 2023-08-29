@@ -1,23 +1,25 @@
 import { Model } from 'mongoose';
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Admin } from './schemas/admin.schema';
+import { Admin } from '../../schemas/admin.schema';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import * as bcrypt from 'bcrypt';
 import { CreateWorkerDto } from './dto/create-worker-dto';
-import { Worker } from './schemas/worker.schema';
+import { Worker } from '../../schemas/worker.schema';
 import { Request } from 'express';
-import { Property } from './schemas/property.schema';
+import { Property } from '../../schemas/property.schema';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { HireWorkerDto } from './dto/hire-worker.dto';
 import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 import { MaterialCostDto } from './dto/material-cost.dto';
-import { MaterialCost } from './schemas/materialCost.schema';
+import { MaterialCost } from '../../schemas/materialCost.schema';
 import { AddAttendanceDto } from './dto/add-attendance.dto';
-import { Attendance } from './schemas/attendance.schema';
+import { Attendance } from '../../schemas/attendance.schema';
 import { AddFlatDto } from './dto/add-flat.dto';
-import { Flat } from './schemas/flat.schema';
+import { Flat } from '../../schemas/flat.schema';
 import axios from 'axios';
+import { MailerService } from '@nestjs-modules/mailer';
+import { I18nContext } from 'nestjs-i18n';
 
 
 
@@ -26,7 +28,6 @@ import axios from 'axios';
 export class AdminService {
 
 
-    private readonly drive;
 
     constructor(@InjectModel(Admin.name) private AdminModel: Model<Admin>,      //This constructor is used for dependency injection. It injects the Mongoose model associated with the Admin entity into the AdminService class. The @InjectModel(Admin.name) decorator specifies that the injected model is associated with the Admin entity. The private AdminModel: Model<Admin> parameter defines a private property named AdminModel of type Model<Admin>, which represents the Mongoose model for the Admin entity.
         @InjectModel(Worker.name) private WorkerModel: Model<Worker>,
@@ -34,7 +35,7 @@ export class AdminService {
         @InjectModel(MaterialCost.name) private MaterialCostModel: Model<MaterialCost>,
         @InjectModel(Attendance.name) private AttendanceModel: Model<Attendance>,
         @InjectModel(Flat.name) private FlatModel: Model<Flat>,
-
+        private readonly mailerService: MailerService,
 
     ) { }
 
@@ -42,7 +43,7 @@ export class AdminService {
     private readonly weatherKey = process.env.OPEN_WEATHER_KEY;
 
 
-    async create(createAdminDto: CreateAdminDto): Promise<Admin> {      
+    async create(createAdminDto: CreateAdminDto): Promise<Admin> {
         const { password, ...rest } = createAdminDto;
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -54,8 +55,13 @@ export class AdminService {
         return createdAdmin.save();
     }
 
-    async addWorker(createWorkerDto: CreateWorkerDto, adminId: string): Promise<Worker> {
+    async addWorker(createWorkerDto: CreateWorkerDto, adminId: string, i18n: I18nContext): Promise<Worker> {
         const { name, email, availability, skills } = createWorkerDto;
+
+        const existingWorker = await this.WorkerModel.findOne({ email });
+        if (existingWorker) {
+            throw new ConflictException(i18n.t('test.WorkerWithEmailExists'));
+        }
 
         const createWorker = new this.WorkerModel({
             adminId,
@@ -70,8 +76,13 @@ export class AdminService {
     }
 
 
-    async addProperty(createPropertyDto: CreatePropertyDto, adminId: string): Promise<Property> {
+    async addProperty(createPropertyDto: CreatePropertyDto, adminId: string, i18n: I18nContext): Promise<Property> {
         const { location, type, specifications, status, workers, flats, materialCost } = createPropertyDto;
+
+        const existingProperty = await this.PropertyModel.findOne({ specifications });
+        if (existingProperty) {
+            throw new ConflictException(i18n.t('test.PropertyAlreadyExists'));
+        }
 
         const createProperty = new this.PropertyModel({
             adminId,
@@ -88,30 +99,33 @@ export class AdminService {
         return createProperty.save();
     };
 
-    async activeConstructions(adminId: string): Promise<Property[]> {
+    async activeConstructions(adminId: string, i18n: I18nContext): Promise<Property[]> {
         return this.PropertyModel.find({ adminId, status: 'under-construction' }).exec();
     }
 
 
-    async hireWorker(propertyId: string, hireWorkerDto: HireWorkerDto, adminId: string): Promise<any> {
+
+    async hireWorker(propertyId: string, hireWorkerDto: HireWorkerDto, adminId: string, i18n: I18nContext): Promise<any> {
         const property = await this.PropertyModel.findOne({ _id: propertyId, adminId });
         if (!property) {
-            throw new NotFoundException('Property not found');
+            throw new HttpException(i18n.t('test.PropertyNotFound'), HttpStatus.NOT_FOUND);
+
         }
         const workerId = hireWorkerDto.workerId;
 
         const worker = await this.WorkerModel.findOne({ _id: workerId, adminId })
         if (!worker) {
-            throw new NotFoundException('Worker not found');
+            throw new HttpException(i18n.t('test.WorkerNotFound'), HttpStatus.NOT_FOUND);
+
         }
 
         if (worker.availability !== 'yes') {
-            throw new HttpException('Worker is not available', HttpStatus.BAD_REQUEST);
+            throw new HttpException(i18n.t('test.WorkerNotAvailable'), HttpStatus.BAD_REQUEST);
         }
 
         for (const skill of hireWorkerDto.skills) {
             if (!worker.skills.includes(skill)) {
-                throw new HttpException('Skills not found', HttpStatus.BAD_REQUEST);
+                throw new HttpException(i18n.t('test.SkillsNotFound'), HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -126,18 +140,19 @@ export class AdminService {
     }
 
 
-    async workerList(propertyId: string): Promise<any> {
+
+    async workerList(propertyId: string, i18n: I18nContext): Promise<any> {
         const property = await this.PropertyModel.findOne({ _id: propertyId });
         if (!property) {
-            throw new NotFoundException('Property not found');
+            throw new NotFoundException(i18n.t('test.PropertyNotFound'));
         }
         return property.workers;
     }
 
-    async addMaterialCost(propertyId: string, materailCostDto: MaterialCostDto): Promise<any> {
+    async addMaterialCost(propertyId: string, materailCostDto: MaterialCostDto, i18n: I18nContext): Promise<any> {
         const property = await this.PropertyModel.findById(propertyId);
         if (!property) {
-            throw new NotFoundException('Property Not Found');
+            throw new NotFoundException(i18n.t('test.PropertyNotFound'));
         }
 
         const materialExpense = new this.MaterialCostModel(materailCostDto);
@@ -145,24 +160,50 @@ export class AdminService {
         property.materialCost.push(materialExpense);
         await property.save();
 
-        return property.materialCost;
+        const totalMaterialCost = property.materialCost.reduce((total, expense) => total + expense.cost, 0);
+
+
+        return {
+            AllMaterial: property.materialCost,
+            TotalCost: totalMaterialCost
+        };
     }
 
 
-    async getAllProperty(adminId: string): Promise<Property[]> {
+    async getAllProperty(adminId: string, i18n: I18nContext): Promise<Property[]> {
         return this.PropertyModel.find({ adminId });
     }
 
-    async propertyDetails(propertyId: string, adminId: string): Promise<Property[]> {
-        return this.PropertyModel.find({ _id: propertyId, adminId, });
+
+    async propertyDetails(propertyId: string, adminId: string, i18n: I18nContext): Promise<any> {
+
+        const property = await this.PropertyModel.findById(propertyId);
+        if (!property) {
+            throw new NotFoundException(i18n.t('test.PropertyNotFound'));
+        }
+
+        const totalMaterialCost = property.materialCost.reduce((total, expense) => total + expense.cost, 0);
+
+        return {
+            location: property.location,
+            type: property.type,
+            specificaton: property.specifications,
+            status: property.status,
+            workers: property.workers,
+            flats: property.flats,
+            expenses: property.materialCost,
+            totalCost: totalMaterialCost
+        }
+
+
     }
 
 
-    async addFlat(addFlatDto: AddFlatDto, propertyId: string): Promise<any> {
-        
+    async addFlat(addFlatDto: AddFlatDto, propertyId: string, i18n: I18nContext): Promise<any> {
+
         const property = await this.PropertyModel.findById(propertyId);
         if (!property) {
-            throw new NotFoundException('property not found');
+            throw new NotFoundException(i18n.t('test.PropertyNotFound'));
         }
 
         const newFlat = new this.FlatModel(addFlatDto);
@@ -175,8 +216,20 @@ export class AdminService {
     }
 
 
-    async addAttendance(addAttendanceDto: AddAttendanceDto, workerId: string, adminId: string): Promise<any> {
+    async addAttendance(addAttendanceDto: AddAttendanceDto, workerId: string, adminId: string, i18n: I18nContext): Promise<any> {
         const { propertyId, date, status } = addAttendanceDto;
+
+        const property = await this.PropertyModel.findById(propertyId);
+        if (!property) {
+            throw new NotFoundException(i18n.t('test.PropertyNotFound'));
+        }
+
+
+        const existingAttendance = await this.AttendanceModel.findOne({ workerId, date });
+        if (existingAttendance) {
+            throw new ConflictException(i18n.t('test.AttendanceAlreadyExists'));
+        }
+
         const addAttendance = new this.AttendanceModel({
             adminId,
             workerId,
@@ -185,14 +238,16 @@ export class AdminService {
             status
 
         })
-        return addAttendance.save();
+        addAttendance.save();
+        return { date, status }
 
     }
 
-    async findAttendance(propertyId: string, date: string): Promise<any> {
+    async findAttendance(propertyId: string, date: string, i18n: I18nContext): Promise<any> {
         const attendance = await this.AttendanceModel.find({ propertyId, status: 'present', date });
-        if (!attendance) {
-            throw new NotFoundException(' Attendace not found');
+
+        if (!attendance || attendance.length === 0) {
+            throw new NotFoundException(i18n.t('test.AttendaceNotFound'));
         }
 
         const workerIds = attendance.map(doc => doc.workerId);       // beacuse find method return array of result
@@ -200,22 +255,42 @@ export class AdminService {
     }
 
 
-    async getWeather(city: String): Promise<any> {
+    async getWeather(city: String, i18n: I18nContext): Promise<any> {
         try {
             const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${this.weatherKey}`)
             const weatherData = {
-                temperature: response.data.main.temp - 273,
+                temperature: (response.data.main.temp - 273).toFixed(2),
                 weatherCondition: response.data.weather[0].description,
                 humidity: response.data.main.humidity,
                 wind: response.data.wind.speed,
             };
+
             let message: string;
-            if (response.data.weather[0].description != 'rainny') {
-                message = 'Conditon good for construction';
+            if (response.data.weather[0].description.toLowerCase().includes('rain')) {
+
+                const emails = await this.WorkerModel.distinct('email');    // get all distinct emails
+
+                let subject = i18n.t('test.WorkSiteClosureNotification');
+                let text = i18n.t('test.EmailText');
+
+                for (const email of emails) {
+                    const mailOptions = {
+                        to: email,
+                        subject: subject,
+                        text: text,
+                    };
+
+                    await this.mailerService.sendMail(mailOptions);
+                }
+
+
+                message = i18n.t('test.BadConditionForConstruction');
+
+            } else {
+                message = i18n.t('test.ConditionGoodForConstruction');
             }
-            else {
-                message = 'Bad condition for construction';
-            }
+
+
             return {
                 message,
                 weatherData

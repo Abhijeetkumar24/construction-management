@@ -7,7 +7,7 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from '../constants';
+import { jwtConstants } from '../modules/auth/constants';
 import { Request } from 'express';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';

@@ -1,9 +1,9 @@
-import { IsString, IsEmail, IsMongoId, ValidateNested, IsArray } from 'class-validator';
+import { IsString, IsEmail, IsMongoId, ValidateNested, IsArray, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ObjectId } from 'mongoose';
 
 class BookedFlat {
-  @IsMongoId()
+  @IsString()
   propertId: ObjectId;
 
   @IsString()
@@ -11,8 +11,6 @@ class BookedFlat {
 }
 
 export class CreateUserDto {
-  @IsMongoId()
-  adminId: ObjectId;
 
   @IsString()
   username: string;
@@ -26,6 +24,7 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => BookedFlat)

@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
-import { Admin, AdminSchema } from './schemas/admin.schema';
+import { Admin, AdminSchema } from '../../schemas/admin.schema';
 import { CommandModule } from 'nestjs-command';
 // import { AdminSeed } from '../Admin/seeds/admin.seed';
-import { Worker, WorkerSchema } from './schemas/worker.schema';
-import { Property, PropertySchema } from './schemas/property.schema';
-import { MaterialCost, MaterialCostSchema } from './schemas/materialCost.schema';
-import { Attendance, AttendanceSchema } from './schemas/attendance.schema';
-import { Flat, FlatSchema } from './schemas/flat.schema';
+import { Worker, WorkerSchema } from '../../schemas/worker.schema';
+import { Property, PropertySchema } from '../../schemas/property.schema';
+import { MaterialCost, MaterialCostSchema } from '../../schemas/materialCost.schema';
+import { Attendance, AttendanceSchema } from '../../schemas/attendance.schema';
+import { Flat, FlatSchema } from '../../schemas/flat.schema';
 
 
 @Module({

@@ -3,8 +3,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Admin } from '../Admin/schemas/admin.schema';
-import { Role } from '../auth/enums/role.enum';
+import { Admin } from '../schemas/admin.schema';
+import { Role } from '../interfaces/enum';
+import * as bcrypt from 'bcrypt'
 
 
 @Injectable()
@@ -14,27 +15,29 @@ export class SeederService implements OnModuleInit {
   async onModuleInit() {
     await this.seedDB();
   }
-
+  
+   //await bcrypt.hash(password, 10);
+  
   async seedDB() {
     const seedAdmins = [
-        {
-            username: 'admin1',
-            email: 'admin1@gmail.com',
-            password: '1234',
+      {
+        username: 'admin4',
+        email: 'admin4@gmail.com',
+            password: await bcrypt.hash('1234', 10),
             role: [Role.Admin],
           },
-          {
-            username: 'admin2',
-            email: 'admin2@gmail.com',
-            password: '1234',
-            role: [Role.Admin],
-          },
-          {
-            username: 'admin3',
-            email: 'admin3@gmail.com',
-            password: '1234',
-            role: [Role.Admin],
-          },
+          // {
+          //   username: 'admin2',
+          //   email: 'admin2@gmail.com',
+          //   password: '1234',
+          //   role: [Role.Admin],
+          // },
+          // {
+          //   username: 'admin3',
+          //   email: 'admin3@gmail.com',
+          //   password: '1234',
+          //   role: [Role.Admin],
+          // },
         
     ];
 

@@ -1,10 +1,12 @@
 import { IsString } from 'class-validator';
 
-export class BookFlatDto {
+export class PaymentDto {
   @IsString()
   propertyId: string;
 
   @IsString()
-  flatNumber: string;
+  price: number;
 
+  @IsString()
+  currency: string;
 }

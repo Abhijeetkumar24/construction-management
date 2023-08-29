@@ -2,8 +2,8 @@ import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message-dto';
 import { ChatService } from './chat.service';
 import { Request } from 'express';
-import { AuthGuard } from '../auth/guards/auth.guard';
-import { ValidationPipe } from 'src/shared/validation.pipe';
+import { AuthGuard } from '../../guards/auth.guard';
+import { ValidationPipe } from 'src/pipes/validation.pipe';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 

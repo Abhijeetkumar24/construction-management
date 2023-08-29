@@ -12,8 +12,10 @@ import * as redisStore from 'cache-manager-redis-store';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Admin, AdminSchema } from '../Admin/schemas/admin.schema';
-import { Session, SessionSchema } from '../user/schemas/session.schema';
+import { Admin, AdminSchema } from '../../schemas/admin.schema';
+import { Session, SessionSchema } from '../../schemas/session.schema';
+import { User, UserSchema } from '../../schemas/user.schema';
+import { GoogleStrategy } from './google.strategy';
 
 
 
@@ -30,9 +32,10 @@ import { Session, SessionSchema } from '../user/schemas/session.schema';
     MongooseModule.forFeature([
       { name: Admin.name, schema: AdminSchema },
       { name: Session.name, schema: SessionSchema},
+      { name: User.name, schema: UserSchema}
     ]),
 
-    MailerModule.forRootAsync({
+    MailerModule.forRootAsync({            // nodeMailer
       useFactory: () => ({
         transport: {
           host: 'smtp.gmail.com',
@@ -58,7 +61,7 @@ import { Session, SessionSchema } from '../user/schemas/session.schema';
     
   ],
   controllers: [AuthController],
-  providers: [AuthService ],
+  providers: [AuthService, GoogleStrategy ],
   exports: [AuthService]
 })
 export class AuthModule { }

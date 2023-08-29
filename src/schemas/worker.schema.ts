@@ -17,7 +17,7 @@ export class Worker {
     name: string;
 
     @Prop()
-    eamil: string; 
+    email: string; 
 
     @Prop()
     availability : string;

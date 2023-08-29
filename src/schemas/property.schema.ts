@@ -35,6 +35,9 @@ export class Property {
     @Prop({type: [MaterialCostSchema]})
     materialCost: MaterialCost[];
 
+    @Prop()
+    stripeId: string;
+
 }
 
 export const PropertySchema = SchemaFactory.createForClass(Property);

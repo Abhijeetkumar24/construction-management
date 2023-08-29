@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { User, UserSchema } from './schemas/user.schema';
+import { User, UserSchema } from '../../schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Property, PropertySchema } from '../Admin/schemas/property.schema';
+import { Property, PropertySchema } from '../../schemas/property.schema';
 import { CacheModule } from '@nestjs/cache-manager';
+import { RabbitMQService } from './rabbitmq.service';
 
 
 @Module({
@@ -14,7 +15,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     
   ])],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, RabbitMQService],
   exports: [UserService]
 })
 export class UserModule { }

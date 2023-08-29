@@ -3,7 +3,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SeederService } from './seed.service';
-import { Admin, AdminSchema } from '../Admin/schemas/admin.schema';
+import { Admin, AdminSchema } from '../schemas/admin.schema';
 
 @Module({
     imports: [

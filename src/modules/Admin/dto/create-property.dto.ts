@@ -5,7 +5,8 @@ import { Type } from 'class-transformer';
 class FlatDto {
     @IsString()
     flatNumber: string;
-
+    
+    @IsOptional()
     @IsMongoId()
     bookedBy: ObjectId;
 
