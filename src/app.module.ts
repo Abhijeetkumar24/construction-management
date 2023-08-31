@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppService } from './app.service';
@@ -11,10 +11,7 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'path';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { RabbitMQService } from './modules/user/rabbitmq.service';
-
-
-
-
+import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
 
 
 @Module({
@@ -35,15 +32,16 @@ import { RabbitMQService } from './modules/user/rabbitmq.service';
       resolvers: [
         { use: QueryResolver, options: ['lang'] },
         AcceptLanguageResolver,
-        ],
+      ],
     }),
 
-   
+
   ],
 
-  
+
   controllers: [AppController],
-  
+
   providers: [AppService, RabbitMQService],
 })
+
 export class AppModule {}

@@ -1,4 +1,4 @@
-// roles.decorator.ts
+
 import { SetMetadata } from '@nestjs/common';
 import { Role } from '../interfaces/enum';
 

@@ -15,6 +15,7 @@ import { RabbitMQService } from './rabbitmq.service';
 import * as PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 
+
 @Injectable()
 export class UserService {
     constructor(
@@ -23,7 +24,9 @@ export class UserService {
         private readonly mailerService: MailerService,
         private readonly rabbitMQService: RabbitMQService,
 
+
     ) { }
+
 
     private readonly stripe = new Stripe(process.env.STRIPE_KEY, { apiVersion: '2023-08-16', });
 
@@ -42,7 +45,7 @@ export class UserService {
     }
 
 
-  
+
     async bookFlat(i18n: I18nContext, bookFlatDto: BookFlatDto, user: any): Promise<any> {
         const { propertyId, flatNumber } = bookFlatDto;
         const userId = user.sub;
@@ -61,7 +64,7 @@ export class UserService {
         const queueData = await this.sendAndConsume(data);
         await this.createAndSendPDF(queueData, email);
 
-        return ; 
+        return;
     }
 
     private async getPropertyById(propertyId: string, i18n: I18nContext) {
@@ -188,6 +191,7 @@ export class UserService {
 
 
     async bookingDetails(i18n: I18nContext, propertId: string, flatId: string): Promise<any> {
+
         const property = await this.PropertyModel.findById(propertId);
         if (!property) {
             throw new NotFoundException(i18n.t('test.property.propertyNotFound'));
@@ -301,14 +305,9 @@ export class UserService {
 
 
 
-
-
-
     async paymentSuccess(res) {
         console.log(res);
     }
-
-
 
 
     async findOne(email: string): Promise<User | undefined> {

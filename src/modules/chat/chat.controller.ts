@@ -1,28 +1,25 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { CreateMessageDto } from './dto/create-message-dto';
-import { ChatService } from './chat.service';
-import { Request } from 'express';
+
 import { AuthGuard } from '../../guards/auth.guard';
-import { ValidationPipe } from 'src/pipes/validation.pipe';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { MessageDto } from './dto/message.dto';
+import { ChatsService } from './chat.service';
+import { Body, Controller, Post, Req, UseGuards, Get } from '@nestjs/common';
+import { Request } from 'express';
 
-
-@ApiTags('Chat')
-@ApiBearerAuth()
 @UseGuards(AuthGuard)
-@Controller('chat')
-export class ChatController {
+@Controller('chats')
+export class ChatsController {
+    constructor(private chatsService: ChatsService) {}
 
-    constructor(private readonly chatService: ChatService){}
+    
+    @Post() 
+    async createMessage(@Body() message: MessageDto, @Req() request: Request) {
+        const userId = request['user'].sub;
+        return this.chatsService.createMessage(message, userId)
+    }
 
-    @Post('message')
-    async sendMessage(@Body(new ValidationPipe) CreateMessageDto: CreateMessageDto, @Req()request: Request): Promise <any> {
-        try {
-            const user = request['user'];
-            const message = await this.chatService.sendMessage(CreateMessageDto, user.sub);
-            return { message: 'Message sent successfully', data: message };
-        } catch (error) {
-            return { message: 'Failed to send message', error };
-        }
+    
+    @Get() 
+    async getAllMessages() {
+        return this.chatsService.getAllMessages()
     }
 }

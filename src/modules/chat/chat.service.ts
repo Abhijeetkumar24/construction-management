@@ -1,23 +1,47 @@
+import { Message, MessageDocument } from '../../schemas/message.schema';
+import { Socket } from 'socket.io';
+import { AuthService } from './../auth/auth.service';
 import { Injectable } from '@nestjs/common';
-import { CreateMessageDto } from './dto/create-message-dto';
+import { WsException } from '@nestjs/websockets';
 import { InjectModel } from '@nestjs/mongoose';
-import { Message } from '../../schemas/message.schema';
 import { Model } from 'mongoose';
+import { MessageDto } from './dto/message.dto';
+
 
 @Injectable()
+export class ChatsService {
+    constructor(private authService: AuthService, @InjectModel(Message.name) private messageModel: Model<MessageDocument>) {}
 
-export class ChatService {
+    async getUserFromSocket(socket: Socket) {
+        let auth_token = socket.handshake.headers.authorization;
+        
+        auth_token = auth_token.split(' ')[1];
 
-    constructor(@InjectModel(Message.name) private readonly messageModel: Model<Message>,){}
-    async sendMessage(CreateMessageDto: CreateMessageDto, senderId: string): Promise<any> {
-        const { receiverId, message } = CreateMessageDto;
-        const createMessage = new this.messageModel({
-            senderId,
-            receiverId,
-            message
-        });
+        const user = this.authService.getUserFromAuthenticationToken( auth_token );
+        
+        if (!user) {
+            throw new WsException('Invalid credentials.');
+        }
 
-        return createMessage.save();
-
+        return user;
     }
+
+
+    async createMessage(messageDto: MessageDto, userId: string) {
+        
+        const { message } = messageDto;
+        const newMessage = new this.messageModel({
+            message,
+            userId
+        })
+
+        await newMessage.save();
+        return newMessage
+    }
+
+    async getAllMessages() {
+        return this.messageModel.find();
+    }
+
+    
 }

@@ -8,14 +8,16 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { RabbitMQService } from './rabbitmq.service';
 
 
+
 @Module({
   imports: [MongooseModule.forFeature([
     { name: User.name, schema: UserSchema },
     { name: Property.name, schema: PropertySchema },
+
     
   ])],
   controllers: [UserController],
-  providers: [UserService, RabbitMQService],
+  providers: [UserService, RabbitMQService ],
   exports: [UserService]
 })
 export class UserModule { }

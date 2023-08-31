@@ -39,7 +39,7 @@ export class AuthGuard implements CanActivate {
 
 
       const id = payload.sub
-      const value = await this.cacheManager.get(JSON.stringify(id)) 
+      const value = await this.cacheManager.get(JSON.stringify(id))      // user for session
 
       if (!value) {
         throw new NotFoundException('Session not found');

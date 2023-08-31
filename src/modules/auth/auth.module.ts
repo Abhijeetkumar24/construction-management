@@ -8,7 +8,6 @@ import { UserModule } from 'src/modules/user/user.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
-
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { MongooseModule } from '@nestjs/mongoose';

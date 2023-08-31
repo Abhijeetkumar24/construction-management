@@ -20,11 +20,10 @@ import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
 import { Verify2faDto } from './dto/verify2fa.dto';
 import { TwoFaDto } from './dto/two.fa.dto';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
-
-    // private secret: string;
 
 
     constructor(
@@ -100,6 +99,7 @@ export class AuthService {
     }
 
 
+
     async userSignup(createUserDto: CreateUserDto): Promise<User> {
 
         const existingUser = await this.UserModel.findOne({ email: createUserDto.email });
@@ -114,6 +114,8 @@ export class AuthService {
 
         return result;
     }
+
+
 
     async userLogin(email: string, password: string): Promise<any> {
         const user = await this.userService.findOne(email) as UserDocument;
@@ -144,6 +146,7 @@ export class AuthService {
 
 
     }
+
 
 
     async generateOtp(email: string): Promise<void> {
@@ -250,6 +253,7 @@ export class AuthService {
         }
     }
 
+
     private async generateQRCode(otpauthUrl: string): Promise<string> {
         return new Promise((resolve, reject) => {
             qrcode.toFile('./qrcode.png', otpauthUrl, (err) => {
@@ -298,6 +302,8 @@ export class AuthService {
 
     }
 
+
+
     googleLogin(req) {
         if (!req.user) {
             return 'No user from google'
@@ -305,6 +311,20 @@ export class AuthService {
         return {
             message: 'User Info from Google',
             user: req.user
+        }
+    }
+
+
+    
+    async getUserFromAuthenticationToken(token: string) {
+        const payload = await this.jwtService.verify(token, {
+            secret: jwtConstants.secret
+        });
+
+        const userId = payload.sub
+
+        if (userId) {
+            return this.UserModel.findById(userId);
         }
     }
 
