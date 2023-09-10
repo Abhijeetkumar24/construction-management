@@ -10,8 +10,9 @@ import { ChatModule } from './modules/chat/chat.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'path';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RabbitMQService } from './modules/user/rabbitmq.service';
-import { RequestLoggerMiddleware } from './middleware/request-logger.middleware';
+import { RabbitMqProducer } from './modules/user/rabbitmq.producer.service';
+import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware';
+
 
 
 @Module({
@@ -35,13 +36,17 @@ import { RequestLoggerMiddleware } from './middleware/request-logger.middleware'
       ],
     }),
 
-
   ],
 
 
   controllers: [AppController],
 
-  providers: [AppService, RabbitMQService],
+  providers: [AppService, RabbitMqProducer,],
 })
 
-export class AppModule {}
+export class AppModule {
+  //  add a middleware on all routes
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}

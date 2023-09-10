@@ -32,6 +32,9 @@ export class User {
   @Prop()
   stripeId: string;
 
+  @Prop()
+  driveQrCode: string;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

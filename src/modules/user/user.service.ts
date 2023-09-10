@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from '../../schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -11,9 +11,15 @@ import { FlatDocument } from '../../schemas/flat.schema';
 import Stripe from 'stripe';
 import { MailerService } from '@nestjs-modules/mailer';
 import { I18n, I18nContext } from 'nestjs-i18n';
-import { RabbitMQService } from './rabbitmq.service';
+import { RabbitMqProducer } from './rabbitmq.producer.service';
 import * as PDFDocument from 'pdfkit';
 import * as fs from 'fs';
+import { RabbitMqConsumer } from './rabbitmq.consumer.service';
+import { UpdateAdminDto } from '../auth/dto/update.admin.dto';
+import { Admin } from 'src/schemas/admin.schema';
+import { UpdateUserDto } from './dto/update.user.dto';
+import { AdminService } from '../Admin/admin.service';
+import { Payment } from 'src/schemas/payment.schema';
 
 
 @Injectable()
@@ -21,13 +27,17 @@ export class UserService {
     constructor(
         @InjectModel(User.name) private UserModel: Model<User>,
         @InjectModel(Property.name) private PropertyModel: Model<Property>,
+        @InjectModel(Admin.name) private AdminModel: Model<Admin>,
+        @InjectModel(Payment.name) private PaymentModel: Model<Payment>,
         private readonly mailerService: MailerService,
-        private readonly rabbitMQService: RabbitMQService,
-
+        private readonly rabbitMqProducer: RabbitMqProducer,
+        private readonly rabbitMqConsume: RabbitMqConsumer,
+        private adminService: AdminService,
 
     ) { }
 
 
+    private readonly logger = new Logger('UserService');
     private readonly stripe = new Stripe(process.env.STRIPE_KEY, { apiVersion: '2023-08-16', });
 
 
@@ -45,12 +55,32 @@ export class UserService {
     }
 
 
+    async updateUser(updateUserDto: UpdateUserDto, userId: string): Promise<User> {
+        const { name, username, email } = updateUserDto;
+
+        const updateUser = await this.UserModel.findByIdAndUpdate(
+            userId,
+            {
+                name,
+                username,
+                email
+            },
+            { new: true } 
+        );
+        
+        return updateUser.save();
+    }
+
+
+
+
 
     async bookFlat(i18n: I18nContext, bookFlatDto: BookFlatDto, user: any): Promise<any> {
         const { propertyId, flatNumber } = bookFlatDto;
         const userId = user.sub;
         const email = user.email;
-        const name = (await this.UserModel.findById(userId)).name;
+        const existingUser = await this.UserModel.findById(userId);
+        const name = existingUser.name;
 
         const property = await this.getPropertyById(propertyId, i18n);
         const flat = this.getFlatByNumber(property, flatNumber, i18n);
@@ -62,7 +92,17 @@ export class UserService {
         const data = await this.generateConfirmationMessage(name, flatNumber, propertyId);
 
         const queueData = await this.sendAndConsume(data);
-        await this.createAndSendPDF(queueData, email);
+        
+        const pdfFileName = await this.createAndSendPDF(queueData, email);
+
+        const upload = await this.adminService.uploadFile(pdfFileName,'application/pdf' )  
+            
+        const driveUrl = await this.adminService.generatePublicUrl(upload.id)
+        existingUser.driveQrCode = driveUrl.webViewLink;
+        await existingUser.save();
+
+        await this.deletePDF(pdfFileName);
+
 
         return;
     }
@@ -124,23 +164,20 @@ export class UserService {
     }
 
     private async sendAndConsume(data: string) {
-        let receivedMessage;
+        
 
-        await this.rabbitMQService.sendMessage(data);
+        await this.rabbitMqProducer.sendMessage(data);
         console.log("message sent to queue");
 
-        await this.rabbitMQService.consumeMessage(async (message) => {
-            console.log(`received message: ${message}`);
-            receivedMessage = message;
-        });
-
-
+        let receivedMessage = await this.rabbitMqConsume.consumeMessage();
         return receivedMessage;
     }
 
-    private async createAndSendPDF(data: string, email: string) {
+
+    private async createAndSendPDF(data: any, email: string): Promise<string> {
         const pdfDoc = new PDFDocument();
-        const pdfFileName = 'message.pdf';
+        // const pdfFileName = 'message.pdf';
+        const pdfFileName = `booking_${email}.pdf`;
         const pdfStream = fs.createWriteStream(pdfFileName);
         pdfDoc.pipe(pdfStream);
         pdfDoc.font('Helvetica-Bold').fontSize(18).fillColor('blue');
@@ -171,12 +208,14 @@ export class UserService {
 
             try {
                 await this.mailerService.sendMail(mailOptions);
-                await this.deletePDF(pdfFileName);
+                // await this.deletePDF(pdfFileName);
             } catch (error) {
                 console.error('Error sending email:', error);
                 throw error;
             }
+
         });
+        return pdfFileName;
     }
 
     private async deletePDF(pdfFileName: string) {
@@ -306,7 +345,19 @@ export class UserService {
 
 
     async paymentSuccess(res) {
-        console.log(res);
+
+        const { session_id } = res.req.query;
+        const session = await this.stripe.checkout.sessions.retrieve(session_id);
+
+        const newPayment = new this.PaymentModel({
+            email: session.customer_details.email,
+            name: session.customer_details.name,
+            amount: session.amount_subtotal,
+            status: session.payment_status
+        })
+
+        await newPayment.save();
+
     }
 
 

@@ -11,20 +11,23 @@ import { MaterialCost, MaterialCostSchema } from '../../schemas/materialCost.sch
 import { Attendance, AttendanceSchema } from '../../schemas/attendance.schema';
 import { Flat, FlatSchema } from '../../schemas/flat.schema';
 
+import { MulterModule } from '@nestjs/platform-express';
+
 
 @Module({
   imports: [MongooseModule.forFeature([                        // forFeature is used to specify which Mongoose models (or schemas) should be registered and made available within a specific module.name: This is the name of the Mongoose model. In this case, Admin.name. The name property is used by Mongoose to associate the model with a specific name in the database.
     { name: Admin.name, schema: AdminSchema },
     { name: Worker.name, schema: WorkerSchema },
     { name: Property.name, schema: PropertySchema },
-    { name: MaterialCost.name, schema: MaterialCostSchema},
-    { name: Attendance.name, schema: AttendanceSchema},
-    { name: Flat.name , schema: FlatSchema},
+    { name: MaterialCost.name, schema: MaterialCostSchema },
+    { name: Attendance.name, schema: AttendanceSchema },
+    { name: Flat.name, schema: FlatSchema },
 
-  ]),CommandModule],
+    
+  ]), CommandModule],
 
   controllers: [AdminController],
-  providers: [AdminService, ],
+  providers: [AdminService,],
   exports: [AdminService]
 })
 export class AdminModule { }

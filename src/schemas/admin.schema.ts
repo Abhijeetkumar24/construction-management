@@ -12,6 +12,9 @@ export class Admin {
 
   
   @Prop()
+  name: string;
+  
+  @Prop()
   username: string;
 
   @Prop()
@@ -25,6 +28,9 @@ export class Admin {
 
   @Prop()
   twoFaSecret: string;
+
+  @Prop()
+  driveQrCode: string;
 
 }
 

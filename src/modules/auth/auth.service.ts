@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException, Req, ConflictException, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException, Req, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { Request } from 'express';
 import { AdminService } from 'src/modules/Admin/admin.service';
 import { JwtService } from '@nestjs/jwt';
@@ -21,11 +21,13 @@ import * as qrcode from 'qrcode';
 import { Verify2faDto } from './dto/verify2fa.dto';
 import { TwoFaDto } from './dto/two.fa.dto';
 import { jwtConstants } from './constants';
+import { UpdateAdminDto } from './dto/update.admin.dto';
 
 @Injectable()
 export class AuthService {
 
-
+    private readonly logger = new Logger('AuthService');
+    
     constructor(
         @InjectModel(Admin.name) private AdminModel: Model<Admin>,
         @InjectModel(Session.name) private SessionModel: Model<Session>,
@@ -57,6 +59,23 @@ export class AuthService {
     }
 
 
+    async updateAdmin(updateAdminDto: UpdateAdminDto, adminId: string): Promise<Admin> {
+        const { name, username, email } = updateAdminDto;
+
+        const updateAdmin = await this.AdminModel.findByIdAndUpdate(
+            adminId,
+            {
+                name,
+                username,
+                email
+            },
+            { new: true } 
+        );
+        
+        return updateAdmin.save();
+    }
+
+
     async adminLogin(email: string, password: string, otp: string, token: string): Promise<any> {
         const user = await this.adminService.findOne(email) as AdminDocument;
         if (!user) {
@@ -80,7 +99,7 @@ export class AuthService {
             token,
         });
 
-        const redisOTP = await this.cacheManager.get(email);
+        const redisOTP = await this.cacheManager.get(email);             // when we select email in 2fa 
 
         // console.log(verified, "red:"+ redisOTP, "otp:" + otp);
         if (!verified && (!redisOTP || JSON.stringify(redisOTP) !== otp)) {
@@ -227,14 +246,19 @@ export class AuthService {
             // console.log("base32" + secret.base32);
             // console.log("ascii" + secret.ascii);
 
-            const qrCodeUrl = await this.generateQRCode(otpauth_url);
+            const qrCodeFileName = await this.generateQRCode(otpauth_url,email);
 
 
             existingAdmin.twoFaSecret = secret.base32;
+            
+            // if api got server timeout then it occure due to google drive upload but qrcode is still accessible in folder
+            const upload = await this.adminService.uploadFile(qrCodeFileName,'image/jpg' )  
+            
+            const driveUrl = await this.adminService.generatePublicUrl(upload.id)
+            existingAdmin.driveQrCode = driveUrl.webViewLink;
             await existingAdmin.save();
 
-
-            return { message: 'QR code image saved as qrcode.png', secret: secret.base32, qrCodeUrl };
+            return { message: `QR code image saved as ${qrCodeFileName}`, secret: secret.base32, qrCodeFileName , googleDrive: upload, driveUrl: driveUrl};
         }
         else {
 
@@ -254,20 +278,25 @@ export class AuthService {
     }
 
 
-    private async generateQRCode(otpauthUrl: string): Promise<string> {
+    private async generateQRCode(otpauthUrl: string, email: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            qrcode.toFile('./qrcode.png', otpauthUrl, (err) => {
+
+            const qrCodeFileName = `qrcode_${email}.jpg`; 
+
+            qrcode.toFile(qrCodeFileName, otpauthUrl, (err) => {
                 if (err) {
                     console.error('Error generating QR code:', err);
                     reject(err);
                 } else {
-                    console.log('QR code image saved as qrcode.png');
-                    resolve('./qrcode.png');
+                    console.log(`QR code image saved as ${qrCodeFileName}`);
+                    resolve(qrCodeFileName);
                 }
             });
         });
     }
 
+
+  
 
     async findOrCreateGoogleUser(userName: string, fullName: string, email: string): Promise<any> {
 
@@ -317,6 +346,7 @@ export class AuthService {
 
     
     async getUserFromAuthenticationToken(token: string) {
+        
         const payload = await this.jwtService.verify(token, {
             secret: jwtConstants.secret
         });

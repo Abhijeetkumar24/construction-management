@@ -1,5 +1,5 @@
 import { Injectable, NestInterceptor, ExecutionContext, BadGatewayException, CallHandler, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';                   //  RxJS is used for working with asynchronous operations
 import { catchError } from 'rxjs/operators';
 
 @Injectable()
@@ -10,7 +10,6 @@ export class ErrorsInterceptor implements NestInterceptor {
       .handle()
       .pipe(
         catchError(err => {
-            
           return throwError(() => err );
         }),
       );

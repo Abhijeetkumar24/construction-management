@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Admin } from '../../schemas/admin.schema';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -20,12 +20,29 @@ import { Flat } from '../../schemas/flat.schema';
 import axios from 'axios';
 import { MailerService } from '@nestjs-modules/mailer';
 import { I18nContext } from 'nestjs-i18n';
-
-
-
+import { Readable } from 'stream';
+import { UpdatePropertyDto } from './dto/update-property.dto';
+import { UpdateAdminDto } from '../auth/dto/update.admin.dto';
+import { google } from 'googleapis'
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class AdminService {
+
+    private readonly logger = new Logger('AdminService');
+
+    private readonly CLIENT_ID = process.env.DRIVE_CLIENT_ID;
+    private readonly CLIENT_SECRET = process.env.DRIVE_CLIENT_SECRET;
+    private readonly REDIRECT_URI = process.env.DRIVE_REDIRECT_URI;
+    private readonly REFRESH_TOKEN = process.env.DRIVE_REFRESH_TOKEN;
+
+
+    private readonly oauth2Client = new google.auth.OAuth2(
+        this.CLIENT_ID,
+        this.CLIENT_SECRET,
+        this.REDIRECT_URI,
+    );
 
 
 
@@ -37,7 +54,9 @@ export class AdminService {
         @InjectModel(Flat.name) private FlatModel: Model<Flat>,
         private readonly mailerService: MailerService,
 
-    ) { }
+    ) {
+        this.oauth2Client.setCredentials({ refresh_token: this.REFRESH_TOKEN });
+    }
 
 
     private readonly weatherKey = process.env.OPEN_WEATHER_KEY;
@@ -52,8 +71,27 @@ export class AdminService {
             role: 'admin',
             password: hashedPassword,
         });
+
         return createdAdmin.save();
     }
+
+
+    async updateAdmin(updateAdminDto: UpdateAdminDto, adminId: string): Promise<Admin> {
+        const { name, username, email } = updateAdminDto;
+
+        const updateAdmin = await this.AdminModel.findByIdAndUpdate(
+            adminId,
+            {
+                name,
+                username,
+                email
+            },
+            { new: true }
+        );
+
+        return updateAdmin.save();
+    }
+
 
     async addWorker(createWorkerDto: CreateWorkerDto, adminId: string, i18n: I18nContext): Promise<Worker> {
         const { name, email, availability, skills } = createWorkerDto;
@@ -98,6 +136,34 @@ export class AdminService {
 
         return createProperty.save();
     };
+
+
+    async updateProperty(updatePropertyDto: UpdatePropertyDto, propertyId: string, i18n: I18nContext): Promise<Property> {
+        const { location, type, specifications, status, workers, flats, materialCost } = updatePropertyDto;
+
+        const property = await this.PropertyModel.findOne({ _id: propertyId });
+        if (!property) {
+            throw new NotFoundException(i18n.t('test.PropertyNotFound'));
+        }
+
+        const updatedProperty = await this.PropertyModel.findByIdAndUpdate(
+            propertyId,
+            {
+                location,
+                type,
+                specifications,
+                status,
+                workers,
+                flats,
+                materialCost
+            },
+            { new: true }
+        );
+
+        return updatedProperty.save();
+    };
+
+
 
     async activeConstructions(adminId: string, i18n: I18nContext): Promise<Property[]> {
         return this.PropertyModel.find({ adminId, status: 'under-construction' }).exec();
@@ -243,6 +309,8 @@ export class AdminService {
 
     }
 
+
+
     async findAttendance(propertyId: string, date: string, i18n: I18nContext): Promise<any> {
         const attendance = await this.AttendanceModel.find({ propertyId, status: 'present', date });
 
@@ -301,6 +369,67 @@ export class AdminService {
 
         }
     }
+
+
+    async uploadFile(qrCodeFileName: any, mimeTypeVar: string): Promise<any> {
+        try {
+            const drive = google.drive({
+                version: 'v3',
+                auth: this.oauth2Client,
+            });
+
+            const filePath = `/home/user/Desktop/daily-work/construction-management/${qrCodeFileName}`;
+
+            console.log(filePath);
+
+            const response = await drive.files.create({
+                requestBody: {
+                    name: qrCodeFileName, 
+                    mimeType: mimeTypeVar,
+                },
+                media: {
+                    mimeType: mimeTypeVar,
+                    body: fs.createReadStream(filePath),
+                },
+            });
+            console.log("hii")
+
+            return response.data;
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
+
+    async generatePublicUrl(fileId: string): Promise<any> {
+        try {
+
+            const drive = google.drive({
+                version: 'v3',
+                auth: this.oauth2Client,
+            });
+
+
+            await drive.permissions.create({
+                fileId: fileId,
+                requestBody: {
+                    role: 'reader',
+                    type: 'anyone',
+                },
+            });
+
+            const result = await drive.files.get({
+                fileId: fileId,
+                fields: 'webViewLink, webContentLink',
+            });
+            return result.data;
+
+
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
 
 
 

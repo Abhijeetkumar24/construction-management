@@ -1,7 +1,7 @@
 import { Message, MessageDocument } from '../../schemas/message.schema';
 import { Socket } from 'socket.io';
 import { AuthService } from './../auth/auth.service';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,6 +10,9 @@ import { MessageDto } from './dto/message.dto';
 
 @Injectable()
 export class ChatsService {
+
+    private readonly logger = new Logger('ChatsService');
+    
     constructor(private authService: AuthService, @InjectModel(Message.name) private messageModel: Model<MessageDocument>) {}
 
     async getUserFromSocket(socket: Socket) {

@@ -11,6 +11,7 @@ import {
     UseGuards,
     Res,
     UseInterceptors,
+    Logger,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthGuard } from '../../guards/auth.guard';
@@ -29,6 +30,7 @@ import { TwoFaDto } from './dto/two.fa.dto';
 import { AdminLoginDto } from './dto/admin.login.dto';
 import { ErrorsInterceptor } from 'src/interceptor/error.handler.interceptor';
 import  {AuthGuard as PassportAuthGuard }  from '@nestjs/passport';
+import { UpdateAdminDto } from './dto/update.admin.dto';
 
 
 
@@ -39,6 +41,7 @@ import  {AuthGuard as PassportAuthGuard }  from '@nestjs/passport';
 export class AuthController {
 
     private secret: string;
+    private readonly logger = new Logger('AuthController');
 
     constructor(private authService: AuthService) { }
 
@@ -107,6 +110,7 @@ export class AuthController {
         return { message };
     }
 
+
     @ApiBearerAuth()
     @UseGuards(AuthGuard)
     @Delete('logout')
@@ -130,14 +134,14 @@ export class AuthController {
     }
 
 
-    @Get('google-login')                      // not work in postman in chrome "localhost:3000/auth/google-login"
+    @Get('google-signin')                      // not work in postman in chrome "localhost:3000/auth/google-login"
     @UseGuards(PassportAuthGuard('google'))
     async googleAuth(@Req()req: Request) { 
         
     }
 
 
-    @Get('auth/google/callback')
+    @Get('/google/callback')
     @UseGuards(PassportAuthGuard('google'))
     googleAuthRedirect(@Req() req) {
         return this.authService.googleLogin(req)

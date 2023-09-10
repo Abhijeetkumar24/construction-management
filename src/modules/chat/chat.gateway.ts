@@ -6,10 +6,10 @@ import { MessageDto } from './dto/message.dto';
 
 @WebSocketGateway()                                              //  This decorator marks the class as a WebSocket gateway. 
 export class ChatGateway implements OnGatewayConnection {
+    constructor(private chatsService: ChatsService) {}
     @WebSocketServer()                                            //  This decorator creates a WebSocket server instance and assigns it to the server property of the class
     server: Server;
 
-    constructor(private chatsService: ChatsService) {}
 
     async handleConnection(socket: Socket) {                       // This method is called when a new WebSocket connection is established
         await this.chatsService.getUserFromSocket(socket)
@@ -38,3 +38,7 @@ export class ChatGateway implements OnGatewayConnection {
 
 
 }
+
+
+// in postman create socket connection using the token and send_message event and create another new connection with token and receive_message event and enable listen , send message in json { "message": "hii" }
+

@@ -1,5 +1,5 @@
 import { Injectable, Inject, Get } from '@nestjs/common';
-import { RabbitMQService } from './modules/user/rabbitmq.service';
+
 
 
 @Injectable()

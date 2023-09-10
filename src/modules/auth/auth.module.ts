@@ -15,6 +15,7 @@ import { Admin, AdminSchema } from '../../schemas/admin.schema';
 import { Session, SessionSchema } from '../../schemas/session.schema';
 import { User, UserSchema } from '../../schemas/user.schema';
 import { GoogleStrategy } from './google.strategy';
+import { AdminService } from '../Admin/admin.service';
 
 
 
@@ -60,7 +61,7 @@ import { GoogleStrategy } from './google.strategy';
     
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy ],
+  providers: [AuthService, GoogleStrategy, ],
   exports: [AuthService]
 })
 export class AuthModule { }

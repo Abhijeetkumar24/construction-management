@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@fastify/secure-session": "^6.2.0",
+    "@golevelup/nestjs-rabbitmq": "^4.0.0",
     "@google-cloud/local-auth": "^2.1.0",
     "@nestjs/cache-manager": "^2.1.0",
     "@nestjs/common": "^10.0.0",
@@ -50,6 +51,7 @@
     "fs": "^0.0.1-security",
     "googleapis": "^105.0.0",
     "ioredis": "^5.3.2",
+    "kafkajs": "^2.2.4",
     "mongoose": "^7.4.2",
     "nest-winston": "^1.9.4",
     "nestjs-command": "^3.1.4",
