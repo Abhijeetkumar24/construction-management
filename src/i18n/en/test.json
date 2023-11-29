@@ -1,0 +1,56 @@
+{
+    "flat": {
+        "flatBookingSuccess": "Flat booked successfully",
+        "flatBookingError": "An error occurred while booking the flat",
+        "flatNotFound": "Flat not found",
+        "flatAlreadyBooked": "Flat is already booked",
+        "flatMaxBookingLimitReached": "You have reached the maximum limit of flat bookings in this property"
+    },
+    "property": {
+        "propertyDetailsSuccess": "Property Details",
+        "propertyDetailsError": "An error occurred while fetching property details",
+        "propertyNotFound": "Property not found"
+    },
+    "payment": {
+        "paymentIntentError": "Payment intent creation failed"
+    },
+    "booking": {
+        "bookingDetailsSuccess": "Booking Details",
+        "bookingDetailsError": "An error occurred while fetching booking details"
+    },
+    "Not Found": "Not Found",
+    "PropertyAddedSuccessfully": "Property added successfully",
+    "PropertyUpdatedSuccessfully": "Property updated successfully",
+    "AdminUpdatedSuccessfully": " Admin updated successfully",
+    "UserUpdateSuccessfully": "User updated successfullly",
+    "ActiveConstructionProperties": "Active construction properties",
+    "WorkerHiredSuccessfully": "Worker hired successfully",
+    "ListOfAllWorkersOnTheGivenProperty": "List of all workers on the given property",
+    "MaterialExpenseAddedSuccessfully": "Material expense added successfully",
+    "ListOfAllProperties": "List of all Properties",
+    "PropertyDetails": "Property Details",
+    "WorkerAddedSuccessfully": "Worker added successfully",
+    "FlatAddedSuccessfully": "Flat added successfully",
+    "AttendanceAddedSuccessfully": "Attendance added successfully",
+    "AttendanceOfTheGivenProperty": "Attendance of the given property",
+    "PropertyNotFound": "Property not found",
+    "WorkerNotFound": "Worker not found",
+    "WorkerNotAvailable": "Worker is not available",
+    "SkillsNotFound": "Skills not found",
+    "PropertyAlreadyExists": "A property with the same specifications already exists",
+    "WorkerWithEmailExists": "A worker with the same email already exists",
+    "PropertyNotExists": "Property not found",
+    "PropertyNotAvailable": "Property Not Found",
+    "MaterialCostAddedSuccessfully": "Material expense added successfully",
+    "AllMaterial": "All material",
+    "TotalCost": "Total cost",
+    "PropertyNotFoundForDetails": "Property Not Found",
+    "AttendanceAlreadyExists": "Attendance for this worker on the same day already exists",
+    "AttendaceNotFound": "Attendance not found",
+    "WorkSiteClosureNotification": "Work Site Closure Notification",
+    "WorkSiteClosedDueToRain": "We regret to inform you that the work site is closed today due to rain.",
+    "ConditionGoodForConstruction": "Condition good for construction",
+    "BadConditionForConstruction": "Bad condition for construction, Notification sent to all workers",
+    "EmailSubject": "Work Site Closure Notification",
+    "EmailText": "Dear Worker,\n\nWe regret to inform you that the work site is closed today due to rain.\n\nSincerely,\nAbhijeet Groups Of Industries"
+}

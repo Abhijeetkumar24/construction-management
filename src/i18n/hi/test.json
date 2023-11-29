@@ -1,0 +1,56 @@
+{
+  "flat": {
+    "flatBookingSuccess": "फ्लैट सफलतापूर्वक बुक किया गया",
+    "flatBookingError": "फ्लैट बुक करते समय एक त्रुटि आई है",
+    "flatNotFound": "फ्लैट नहीं मिला",
+    "flatAlreadyBooked": "फ्लैट पहले से ही बुक है",
+    "flatMaxBookingLimitReached": "आपने इस प्रॉपर्टी में फ्लैट बुकिंग की अधिकतम सीमा तक पहुँच ली है"
+  },
+  "property": {
+    "propertyDetailsSuccess": "प्रॉपर्टी का विवरण",
+    "propertyDetailsError": "प्रॉपर्टी के विवरण प्राप्त करते समय एक त्रुटि आई है",
+    "propertyNotFound": "प्रॉपर्टी नहीं मिली"
+  },
+  "payment": {
+    "paymentIntentError": "भुगतान संकेत सृजन विफल हुआ"
+  },
+  "booking": {
+    "bookingDetailsSuccess": "बुकिंग विवरण",
+    "bookingDetailsError": "बुकिंग विवरण प्राप्त करते समय एक त्रुटि आई है"
+  },
+  "Not Found": "खोजा नहीं गया",
+  "PropertyAddedSuccessfully": "संपत्ति सफलतापूर्वक जोड़ी गई है",
+  "PropertyUpdatedSuccessfully": "संपत्ति सफलतापूर्वक अपडेट की गई",
+  "AdminUpdatedSuccessfully": "एडमिन ने सफलतापूर्वक अपडेट किया",
+  "UserUpdateSuccessfully": "उपयोगकर्ता ने सफलतापूर्वक अपडेट किया",
+  "ActiveConstructionProperties": "सक्रिय निर्माण संपत्तियाँ",
+  "WorkerHiredSuccessfully": "कामगार सफलतापूर्वक नियुक्त किया गया है",
+  "ListOfAllWorkersOnTheGivenProperty": "दी गई संपत्ति पर सभी कामगारों की सूची",
+  "MaterialExpenseAddedSuccessfully": "सामग्री खर्च सफलतापूर्वक जोड़ा गया है",
+  "ListOfAllProperties": "सभी संपत्तियों की सूची",
+  "PropertyDetails": "संपत्ति विवरण",
+  "WorkerAddedSuccessfully": "कामगार सफलतापूर्वक जोड़ा गया है",
+  "FlatAddedSuccessfully": "फ्लैट सफलतापूर्वक जोड़ा गया है",
+  "AttendanceAddedSuccessfully": "उपस्थिति सफलतापूर्वक जोड़ी गई है",
+  "AttendanceOfTheGivenProperty": "दी गई संपत्ति की उपस्थिति",
+  "PropertyNotFound": "संपत्ति नहीं मिली",
+  "WorkerNotFound": "कामगार नहीं मिला",
+  "WorkerNotAvailable": "कामगार उपलब्ध नहीं है",
+  "SkillsNotFound": "कौशल नहीं मिले",
+  "PropertyAlreadyExists": "एक समान विशेषज्ञता वाली संपत्ति पहले से मौजूद है",
+  "WorkerWithEmailExists": "एक समान ईमेल वाला कामगार पहले से मौजूद है",
+  "PropertyNotExists": "संपत्ति नहीं मिली",
+  "PropertyNotAvailable": "संपत्ति नहीं मिली",
+  "MaterialCostAddedSuccessfully": "सामग्री खर्च सफलतापूर्वक जोड़ा गया है",
+  "AllMaterial": "सभी सामग्री",
+  "TotalCost": "कुल लागत",
+  "PropertyNotFoundForDetails": "संपत्ति नहीं मिली",
+  "AttendanceAlreadyExists": "इस कामगार के लिए उसी दिन की उपस्थिति पहले से ही मौजूद है",
+  "AttendaceNotFound": "उपस्थिति नहीं मिली",
+  "WorkSiteClosureNotification": "काम स्थल बंद होने की सूचना",
+  "WorkSiteClosedDueToRain": "हम आपको सूचित करने के लिए दुख है कि आज बारिश के कारण काम स्थल बंद हो गया है।",
+  "ConditionGoodForConstruction": "निर्माण के लिए अच्छी स्थिति",
+  "BadConditionForConstruction": "निर्माण के लिए खराब स्थिति, सभी कामगारों को सूचना भेज दी गई है",
+  "EmailSubject": "काम स्थल बंद होने की सूचना",
+  "EmailText": "प्रिय कामगार,\n\nहम आपको सूचित करने के लिए दुख है कि आज बारिश के कारण काम स्थल बंद हो गया है।\n\nईमानदारी से,\nअभिजीत इंडस्ट्रीज के समूह"
+}
